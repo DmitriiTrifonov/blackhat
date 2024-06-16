@@ -1,6 +1,9 @@
 package app
 
-import "fmt"
+import (
+	"github.com/DmitriiTrifonov/blackhat/internal/game"
+	"go.uber.org/zap"
+)
 
 type Application struct {
 	cfg *Config
@@ -11,6 +14,12 @@ func New(cfg *Config) *Application {
 }
 
 func (a *Application) Run() error {
-	fmt.Println("Application started")
+	logger, err := zap.NewProduction()
+	if err != nil {
+		return err
+	}
+	defer logger.Sync()
+	round := game.NewRound()
+	logger.Info("round data", zap.Any("round", round))
 	return nil
 }

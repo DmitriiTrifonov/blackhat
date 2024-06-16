@@ -2,7 +2,6 @@ package game
 
 import (
 	"encoding/binary"
-	"fmt"
 	"github.com/DmitriiTrifonov/blackhat/internal/models"
 	"math/rand/v2"
 	"net"
@@ -23,7 +22,7 @@ type Round struct {
 func NewRound() *Round {
 	r := &Round{}
 
-	nodesMap := make(map[string]*models.Node)
+	r.NodesMap = make(map[string]*models.Node)
 
 	playerNodeStart := &models.Node{
 		Level:          0,
@@ -34,13 +33,15 @@ func NewRound() *Round {
 		ConnectedNodes: nil,
 	}
 
-	nodesMap[playerNodeStart.IPAddress] = playerNodeStart
+	r.NodesMap[playerNodeStart.IPAddress] = playerNodeStart
+
+	r.PlayerNodeStart = playerNodeStart
 
 	return r
 }
 
 func generateIPAddr() string {
-	buf := make([]byte, 0, 4)
+	buf := make([]byte, 4)
 	num := rand.Uint32()
 	binary.LittleEndian.PutUint32(buf, num)
 
@@ -53,28 +54,4 @@ func (r *Round) CheckPlayerWin() bool {
 
 func (r *Round) CheckPlayerLoose() bool {
 	return r.PlayerNodeStart.Owner == models.OwnerFirewall
-}
-
-func (r *Round) CheckConnected(node *models.Node) {
-	for _, c := range node.ConnectedNodes {
-		fmt.Printf("node ip:%s, lvl:%d, owner:%s \n", c.IPAddress, c.Level, c.Owner)
-	}
-}
-
-func (r *Round) Capture(node *models.Node) {
-	t := time.Duration(node.Level) * time.Second
-	<-time.After(t)
-	node.Owner = models.OwnerPlayer
-	if node.Owner == models.OwnerFirewall {
-		r.BreachDetected = true
-
-		return
-	}
-	for _, c := range node.ConnectedNodes {
-		if c.Owner == models.OwnerFirewall {
-			r.BreachDetected = true
-
-			return
-		}
-	}
 }
